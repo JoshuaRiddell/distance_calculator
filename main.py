@@ -14,7 +14,7 @@ gmaps = googlemaps.Client(key='AIzaSyBV6lsdmG78rZGq5GCml7tidoPs-LYjUl0')
 destinations = ["RAAF Amberley", "City4051 CrossFit", "55 Curzon St, Tennyson QLD 4105", "University of Queensland"]
 
 class RequestForm(FlaskForm):
-    start_location = StringField("Start Location", validators=[DataRequired()])
+    start_location = StringField("Enter Start Location:", validators=[DataRequired()])
     submit = SubmitField('Calculate')
 
 @app.route('/', methods=["GET", "POST"])
@@ -23,8 +23,15 @@ def homepage():
     if form.validate_on_submit():
         print("calc from" + form.start_location.data)
         mat = gmaps.distance_matrix([form.start_location.data], destinations)
-        return "\n".join(["<p>" + y + ", " + x['duration']['text'] + "</p>" for x,y in zip(mat["rows"][0]['elements'], destinations)])
-    return render_template('request.html', title='Distance Calculator', form=form)
+        print(mat)
+        durations = [x['duration']['text'] for x in mat["rows"][0]["elements"]]
+        
+        origin = "<p>Starting at: <b>{}</b></p>\n".format(form.start_location.data)
+        results = "<table>\n<tr><th>Place</th><th>Time</th></tr>\n"
+        results += "\n".join(["<tr><td>{}</td> <td>{}</td></tr>".format(dest, durat) for dest, durat in zip(destinations, durations)])
+        results += "\n</table>"
+        return render_template('request.html', title="Distance Calculator", form=form, previous_results=(origin + results))
+    return render_template('request.html', title='Distance Calculator', form=form, previous_results="")
 
 if __name__ == "__main__":
     app.run()
