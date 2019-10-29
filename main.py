@@ -24,12 +24,17 @@ def homepage():
         print("calc from" + form.start_location.data)
         mat = gmaps.distance_matrix([form.start_location.data], destinations)
         print(mat)
-        durations = [x['duration']['text'] for x in mat["rows"][0]["elements"]]
-        
+
+        try:
+            durations = [x['duration']['text'] for x in mat["rows"][0]["elements"]]
+        except:
+            return render_template('request.html', title="Distance Calculator", form=form, previous_results=("Invalid Input. Either wrong address or not specific enough."))
+
         origin = "<p>Starting at: <b>{}</b></p>\n".format(form.start_location.data)
         results = "<table>\n<tr><th>Place</th><th>Time</th></tr>\n"
         results += "\n".join(["<tr><td>{}</td> <td>{}</td></tr>".format(dest, durat) for dest, durat in zip(destinations, durations)])
         results += "\n</table>"
+
         return render_template('request.html', title="Distance Calculator", form=form, previous_results=(origin + results))
     return render_template('request.html', title='Distance Calculator', form=form, previous_results="")
 
