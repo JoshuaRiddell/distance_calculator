@@ -5,6 +5,7 @@ from wtforms import StringField, PasswordField, BooleanField, SubmitField
 from wtforms.validators import DataRequired
 from flask import Flask, render_template
 import googlemaps
+import datetime
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'you-will-never-guess'
@@ -21,9 +22,13 @@ class RequestForm(FlaskForm):
 def homepage():
     form = RequestForm()
     if form.validate_on_submit():
-        print("calc from" + form.start_location.data)
-        mat = gmaps.distance_matrix([form.start_location.data], destinations)
-        print(mat)
+        mat = gmaps.distance_matrix([form.start_location.data],
+                destinations,
+                mode="driving",
+                avoid="tolls",
+                departure_time=datetime.datetime(2019, 12, 10, 8, 0),
+                traffic_model="best_guess",
+                region=".au")
 
         try:
             durations = [x['duration']['text'] for x in mat["rows"][0]["elements"]]
